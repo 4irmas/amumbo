@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heiliger Amumbo – 200 SMA Signal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #21262d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --buy:       #00e676;
+      --sell:      #ff1744;
+      --buy-dim:   rgba(0,230,118,.12);
+      --sell-dim:  rgba(255,23,68,.12);
+      --accent:    #58a6ff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    header .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .6rem;
+    }
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 600;
+      letter-spacing: -.02em;
+    }
+    header h1 span { color: var(--accent); }
+    header p {
+      margin-top: .5rem;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    /* ── Cards grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+    }
+    .card .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .5rem;
+    }
+    .card .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .card .sub {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: .35rem;
+    }
+    .card.price .value  { color: var(--text); }
+    .card.sma .value    { color: var(--accent); }
+    .card.diff .value   { }
+
+    /* ── Signal card ── */
+    .signal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: background .4s, border-color .4s;
+    }
+    .signal-card.buy  { background: var(--buy-dim);  border-color: var(--buy); }
+    .signal-card.sell { background: var(--sell-dim); border-color: var(--sell); }
+
+    .pulse-dot {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .pulse-dot::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      animation: pulse 2s ease-out infinite;
+    }
+    .buy  .pulse-dot { background: var(--buy); }
+    .buy  .pulse-dot::after { box-shadow: 0 0 0 0 var(--buy); }
+    .sell .pulse-dot { background: var(--sell); }
+    .sell .pulse-dot::after { box-shadow: 0 0 0 0 var(--sell); }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0   currentColor; opacity: .8; }
+      70%  { box-shadow: 0 0 0 18px transparent; opacity: 0; }
+      100% { box-shadow: 0 0 0 0   transparent; }
+    }
+
+    .signal-text .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .3rem;
+    }
+    .signal-text .action {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    .buy  .action { color: var(--buy); }
+    .sell .action { color: var(--sell); }
+    .signal-text .desc { font-size: .82rem; color: var(--muted); margin-top: .3rem; }
+
+    /* ── Chart ── */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 1.5rem;
+    }
+    .chart-card .chart-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Footer / meta ── */
+    .meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .7rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+    }
+    .meta a { color: var(--accent); text-decoration: none; }
+
+    /* ── Loading / error ── */
+    .loading {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--muted);
+      font-size: .85rem;
+      text-align: center;
+      padding: 3rem;
+      width: 100%;
+    }
+    .error-msg {
+      color: var(--sell);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .8rem;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .signal-card { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Xtrackers MSCI USA 2x Leveraged · ISIN LU0411078552</p>
+  <h1>Der heilige <span>Amumbo</span></h1>
+  <p>200-Tage-SMA Strategie · Live-Daten</p>
+</header>
+
+<div id="app">
+  <div class="loading">⏳ Lade Marktdaten…</div>
+</div>
+
+<div class="meta" id="meta" style="display:none">
+  Daten via Yahoo Finance · Ticker: <strong>XU2D.DE</strong><br/>
+  Strategie: Kauf wenn Kurs &gt; 200SMA · Verkauf wenn Kurs &lt; 200SMA<br/>
+  Kein Anlageberatung. Aktualisiert beim Seitenaufruf.<br/>
+  <span id="last-update"></span>
+</div>
+
+<script>
+const TICKER   = 'XU2D.DE';
+const PROXY    = 'https://query1.finance.yahoo.com/v8/finance/chart/';
+const PERIOD   = 300; // days to fetch for 200SMA + chart
+
+async function fetchData() {
+  const to   = Math.floor(Date.now() / 1000);
+  const from = to - PERIOD * 86400;
+  const url  = `${PROXY}${encodeURIComponent(TICKER)}?interval=1d&period1=${from}&period2=${to}&events=history`;
+
+  // Use allorigins to avoid CORS in browser
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const res   = await fetch(proxy);
+  const json  = await res.json();
+  const data  = JSON.parse(json.contents);
+
+  const result = data.chart.result[0];
+  const closes = result.indicators.quote[0].close;
+  const timestamps = result.timestamp;
+
+  // Filter out nulls
+  const filtered = closes.map((c, i) => ({ c, t: timestamps[i] })).filter(x => x.c !== null);
+  return filtered;
+}
+
+function calcSMA(data, period) {
+  if (data.length < period) return null;
+  const slice = data.slice(-period);
+  return slice.reduce((s, x) => s + x.c, 0) / period;
+}
+
+function formatDate(ts) {
+  return new Date(ts * 1000).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatPrice(p) {
+  return p.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function render(data) {
+  const price    = data[data.length - 1].c;
+  const sma200   = calcSMA(data, 200);
+  const isBuy    = price > sma200;
+  const diff     = ((price - sma200) / sma200 * 100).toFixed(2);
+  const diffStr  = (diff > 0 ? '+' : '') + diff + '%';
+  const diffColor = diff > 0 ? 'var(--buy)' : 'var(--sell)';
+
+  // Chart: last 12 months of price + SMA line
+  const chartData = data.slice(-252);
+  const labels    = chartData.map(d => formatDate(d.t));
+  const prices    = chartData.map(d => d.c);
+
+  // rolling SMA over chart window (using full data for accuracy)
+  const smaLine = chartData.map((_, i) => {
+    const idx = data.length - 252 + i;
+    if (idx < 199) return null;
+    const slice = data.slice(idx - 199, idx + 1);
+    return slice.reduce((s, x) => s + x.c, 0) / 200;
+  });
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="signal-card ${isBuy ? 'buy' : 'sell'}">
+      <div class="pulse-dot"></div>
+      <div class="signal-text">
+        <div class="label">Aktuelles Signal</div>
+        <div class="action">${isBuy ? '✅ INVESTIERT BLEIBEN' : '❌ IN CASH GEHEN'}</div>
+        <div class="desc">${isBuy
+          ? 'Kurs liegt über dem 200-Tage-SMA → Position halten / einsteigen.'
+          : 'Kurs liegt unter dem 200-Tage-SMA → Kasse halten / aussteigen.'}</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card price">
+        <div class="label">Aktueller Kurs</div>
+        <div class="value">${formatPrice(price)}</div>
+        <div class="sub">EUR · ${TICKER} · ${formatDate(data[data.length-1].t)}</div>
+      </div>
+      <div class="card sma">
+        <div class="label">200-Tage-SMA</div>
+        <div class="value">${formatPrice(sma200)}</div>
+        <div class="sub">Gleitender Durchschnitt</div>
+      </div>
+      <div class="card diff">
+        <div class="label">Abstand zum SMA</div>
+        <div class="value" style="color:${diffColor}">${diffStr}</div>
+        <div class="sub">${isBuy ? 'Kurs über SMA' : 'Kurs unter SMA'}</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Kursverlauf + 200 SMA · letzte 12 Monate</div>
+      <canvas id="myChart" height="100"></canvas>
+    </div>
+  `;
+
+  // Draw chart
+  const ctx = document.getElementById('myChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Kurs (EUR)',
+          data: prices,
+          borderColor: '#58a6ff',
+          backgroundColor: 'rgba(88,166,255,.06)',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          tension: 0.2,
+        },
+        {
+          label: '200 SMA',
+          data: smaLine,
+          borderColor: isBuy ? '#00e676' : '#ff1744',
+          borderWidth: 2,
+          borderDash: [6, 3],
+          pointRadius: 0,
+          fill: false,
+          tension: 0.2,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#8b949e',
+            font: { family: 'JetBrains Mono', size: 11 },
+            boxWidth: 14,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#161b22',
+          borderColor: '#21262d',
+          borderWidth: 1,
+          titleColor: '#8b949e',
+          bodyColor: '#e6edf3',
+          bodyFont: { family: 'JetBrains Mono' },
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? formatPrice(ctx.parsed.y) + ' €' : '–'}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#8b949e',
+            font: { family: 'JetBrains Mono', size: 10 },
+            maxTicksLimit: 8,
+            maxRotation: 0,
+          },
+          grid: { color: '#21262d' }
+        },
+        y: {
+          ticks: {
+            color: '#8b949e',
+            font: { family: 'JetBrains Mono', size: 10 },
+            callback: v => formatPrice(v) + ' €'
+          },
+          grid: { color: '#21262d' }
+        }
+      }
+    }
+  });
+
+  // Meta
+  document.getElementById('meta').style.display = 'block';
+  document.getElementById('last-update').textContent =
+    'Stand: ' + new Date().toLocaleString('de-DE');
+}
+
+async function main() {
+  try {
+    const data = await fetchData();
+    render(data);
+  } catch (e) {
+    console.error(e);
+    document.getElementById('app').innerHTML = `
+      <div class="error-msg">
+        ⚠️ Daten konnten nicht geladen werden.<br/>
+        Mögliche Ursache: CORS / Yahoo Finance blockiert.<br/>
+        Tipp: Seite auf einem Webserver (z.B. GitHub Pages) hosten – dann funktioniert alles.
+      </div>`;
+  }
+}
+
+main();
+</script>
+</body>
+</html>
