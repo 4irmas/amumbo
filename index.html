@@ -9,22 +9,18 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --border:    #21262d;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --buy:       #00e676;
-      --sell:      #ff1744;
-      --buy-dim:   rgba(0,230,118,.12);
-      --sell-dim:  rgba(255,23,68,.12);
-      --accent:    #58a6ff;
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --border:  #21262d;
+      --text:    #e6edf3;
+      --muted:   #8b949e;
+      --buy:     #00e676;
+      --sell:    #ff1744;
+      --buy-dim: rgba(0,230,118,.12);
+      --sell-dim:rgba(255,23,68,.12);
+      --accent:  #58a6ff;
     }
-
-    html { scroll-behavior: smooth; }
-
     body {
       background: var(--bg);
       color: var(--text);
@@ -35,12 +31,7 @@
       align-items: center;
       padding: 2rem 1rem 4rem;
     }
-
-    /* ── Header ── */
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
+    header { text-align: center; margin-bottom: 2.5rem; }
     header .eyebrow {
       font-family: 'JetBrains Mono', monospace;
       font-size: .7rem;
@@ -49,19 +40,10 @@
       color: var(--muted);
       margin-bottom: .6rem;
     }
-    header h1 {
-      font-size: clamp(1.6rem, 4vw, 2.4rem);
-      font-weight: 600;
-      letter-spacing: -.02em;
-    }
+    header h1 { font-size: clamp(1.6rem,4vw,2.4rem); font-weight: 600; letter-spacing: -.02em; }
     header h1 span { color: var(--accent); }
-    header p {
-      margin-top: .5rem;
-      color: var(--muted);
-      font-size: .88rem;
-    }
+    header p { margin-top: .5rem; color: var(--muted); font-size: .88rem; }
 
-    /* ── Cards grid ── */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -70,7 +52,6 @@
       max-width: 860px;
       margin-bottom: 1.5rem;
     }
-
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -91,16 +72,8 @@
       font-weight: 700;
       line-height: 1;
     }
-    .card .sub {
-      font-size: .75rem;
-      color: var(--muted);
-      margin-top: .35rem;
-    }
-    .card.price .value  { color: var(--text); }
-    .card.sma .value    { color: var(--accent); }
-    .card.diff .value   { }
+    .card .sub { font-size: .75rem; color: var(--muted); margin-top: .35rem; }
 
-    /* ── Signal card ── */
     .signal-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -118,8 +91,7 @@
     .signal-card.sell { background: var(--sell-dim); border-color: var(--sell); }
 
     .pulse-dot {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       border-radius: 50%;
       flex-shrink: 0;
       position: relative;
@@ -132,16 +104,12 @@
       animation: pulse 2s ease-out infinite;
     }
     .buy  .pulse-dot { background: var(--buy); }
-    .buy  .pulse-dot::after { box-shadow: 0 0 0 0 var(--buy); }
     .sell .pulse-dot { background: var(--sell); }
-    .sell .pulse-dot::after { box-shadow: 0 0 0 0 var(--sell); }
-
     @keyframes pulse {
-      0%   { box-shadow: 0 0 0 0   currentColor; opacity: .8; }
-      70%  { box-shadow: 0 0 0 18px transparent; opacity: 0; }
+      0%   { box-shadow: 0 0 0 0   currentColor; opacity:.8; }
+      70%  { box-shadow: 0 0 0 18px transparent; opacity:0; }
       100% { box-shadow: 0 0 0 0   transparent; }
     }
-
     .signal-text .label {
       font-family: 'JetBrains Mono', monospace;
       font-size: .68rem;
@@ -151,7 +119,7 @@
       margin-bottom: .3rem;
     }
     .signal-text .action {
-      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-size: clamp(1.6rem,4vw,2.2rem);
       font-weight: 700;
       letter-spacing: -.02em;
     }
@@ -159,7 +127,6 @@
     .sell .action { color: var(--sell); }
     .signal-text .desc { font-size: .82rem; color: var(--muted); margin-top: .3rem; }
 
-    /* ── Chart ── */
     .chart-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -177,8 +144,6 @@
       color: var(--muted);
       margin-bottom: 1rem;
     }
-
-    /* ── Footer / meta ── */
     .meta {
       font-family: 'JetBrains Mono', monospace;
       font-size: .7rem;
@@ -186,9 +151,6 @@
       text-align: center;
       line-height: 1.8;
     }
-    .meta a { color: var(--accent); text-decoration: none; }
-
-    /* ── Loading / error ── */
     .loading {
       font-family: 'JetBrains Mono', monospace;
       color: var(--muted);
@@ -204,8 +166,6 @@
       text-align: center;
       padding: 1rem;
     }
-
-    /* ── Responsive ── */
     @media (max-width: 480px) {
       .signal-card { flex-direction: column; align-items: flex-start; }
     }
@@ -214,57 +174,46 @@
 <body>
 
 <header>
-  <p class="eyebrow">Xtrackers MSCI USA 2x Leveraged · ISIN LU0411078552</p>
+  <p class="eyebrow">Xtrackers MSCI USA 2x Leveraged &middot; ISIN LU0411078552</p>
   <h1>Der heilige <span>Amumbo</span></h1>
-  <p>200-Tage-SMA Strategie · Live-Daten</p>
+  <p>200-Tage-SMA Strategie &middot; Live-Daten</p>
 </header>
 
 <div id="app">
-  <div class="loading">⏳ Lade Marktdaten…</div>
+  <div class="loading">&#9203; Lade Marktdaten&hellip;</div>
 </div>
 
 <div class="meta" id="meta" style="display:none">
-  Daten via Yahoo Finance · Ticker: <strong>XU2D.DE</strong><br/>
-  Strategie: Kauf wenn Kurs &gt; 200SMA · Verkauf wenn Kurs &lt; 200SMA<br/>
-  Kein Anlageberatung. Aktualisiert beim Seitenaufruf.<br/>
+  Daten via stooq.com &middot; Ticker: <strong>XU2D.DE</strong><br/>
+  Strategie: Kauf wenn Kurs &gt; 200SMA &middot; Verkauf wenn Kurs &lt; 200SMA<br/>
+  Keine Anlageberatung. Aktualisiert beim Seitenaufruf.<br/>
   <span id="last-update"></span>
 </div>
 
 <script>
-const TICKER = 'XU2D.DE';
-const PERIOD = 300;
+const STOOQ_TICKER = 'xu2d.de';
 
 async function fetchData() {
-  const to   = Math.floor(Date.now() / 1000);
-  const from = to - PERIOD * 86400;
-  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(TICKER)}?interval=1d&period1=${from}&period2=${to}&events=history`;
-
-  const proxies = [
-    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  ];
-
-  let lastError;
-  for (const makeProxy of proxies) {
-    try {
-      const res  = await fetch(makeProxy(yahooUrl), { signal: AbortSignal.timeout(8000) });
-      const text = await res.text();
-      // allorigins wraps in { contents: "..." }, others return raw JSON
-      let parsed;
-      try { parsed = JSON.parse(text); } catch { throw new Error('bad json'); }
-      const raw = parsed.contents ? JSON.parse(parsed.contents) : parsed;
-      const result = raw.chart.result[0];
-      const closes     = result.indicators.quote[0].close;
-      const timestamps = result.timestamp;
-      const filtered = closes.map((c, i) => ({ c, t: timestamps[i] })).filter(x => x.c !== null);
-      if (filtered.length < 210) throw new Error('not enough data');
-      return filtered;
-    } catch (e) {
-      lastError = e;
-    }
+  // stooq.com liefert CSV direkt, kein Proxy noetig
+  const url = 'https://stooq.com/q/d/l/?s=' + STOOQ_TICKER + '&i=d';
+  const res  = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error('stooq fetch failed: ' + res.status);
+  const csv = await res.text();
+  const lines = csv.trim().split('\n').slice(1);
+  const data = [];
+  for (const line of lines) {
+    const parts = line.split(',');
+    if (parts.length < 5) continue;
+    const dateStr = parts[0].trim();
+    const close   = parseFloat(parts[4].trim());
+    if (!dateStr || isNaN(close)) continue;
+    const bits = dateStr.split('-');
+    const ts = Date.UTC(+bits[0], +bits[1] - 1, +bits[2]) / 1000;
+    data.push({ c: close, t: ts, dateStr });
   }
-  throw lastError;
+  data.sort((a, b) => a.t - b.t);
+  if (data.length < 210) throw new Error('Nicht genug Daten (' + data.length + ')');
+  return data;
 }
 
 function calcSMA(data, period) {
@@ -273,150 +222,82 @@ function calcSMA(data, period) {
   return slice.reduce((s, x) => s + x.c, 0) / period;
 }
 
-function formatDate(ts) {
-  return new Date(ts * 1000).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function formatPrice(p) {
+function fmt(p) {
   return p.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function fmtDate(ts) {
+  return new Date(ts * 1000).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
 function render(data) {
-  const price    = data[data.length - 1].c;
-  const sma200   = calcSMA(data, 200);
-  const isBuy    = price > sma200;
-  const diff     = ((price - sma200) / sma200 * 100).toFixed(2);
-  const diffStr  = (diff > 0 ? '+' : '') + diff + '%';
+  const price  = data[data.length - 1].c;
+  const sma200 = calcSMA(data, 200);
+  const isBuy  = price > sma200;
+  const diff   = ((price - sma200) / sma200 * 100).toFixed(2);
+  const diffStr   = (diff > 0 ? '+' : '') + diff + '%';
   const diffColor = diff > 0 ? 'var(--buy)' : 'var(--sell)';
+  const lastDate  = fmtDate(data[data.length - 1].t);
 
-  // Chart: last 12 months of price + SMA line
   const chartData = data.slice(-252);
-  const labels    = chartData.map(d => formatDate(d.t));
+  const labels    = chartData.map(d => fmtDate(d.t));
   const prices    = chartData.map(d => d.c);
-
-  // rolling SMA over chart window (using full data for accuracy)
-  const smaLine = chartData.map((_, i) => {
+  const smaLine   = chartData.map((_, i) => {
     const idx = data.length - 252 + i;
     if (idx < 199) return null;
-    const slice = data.slice(idx - 199, idx + 1);
-    return slice.reduce((s, x) => s + x.c, 0) / 200;
+    const sl = data.slice(idx - 199, idx + 1);
+    return sl.reduce((s, x) => s + x.c, 0) / 200;
   });
 
-  const app = document.getElementById('app');
-  app.innerHTML = `
-    <div class="signal-card ${isBuy ? 'buy' : 'sell'}">
-      <div class="pulse-dot"></div>
-      <div class="signal-text">
-        <div class="label">Aktuelles Signal</div>
-        <div class="action">${isBuy ? '✅ INVESTIERT BLEIBEN' : '❌ IN CASH GEHEN'}</div>
-        <div class="desc">${isBuy
-          ? 'Kurs liegt über dem 200-Tage-SMA → Position halten / einsteigen.'
-          : 'Kurs liegt unter dem 200-Tage-SMA → Kasse halten / aussteigen.'}</div>
-      </div>
-    </div>
+  document.getElementById('app').innerHTML =
+    '<div class="signal-card ' + (isBuy ? 'buy' : 'sell') + '">' +
+      '<div class="pulse-dot"></div>' +
+      '<div class="signal-text">' +
+        '<div class="label">Aktuelles Signal</div>' +
+        '<div class="action">' + (isBuy ? '&#x2705; INVESTIERT BLEIBEN' : '&#x274C; IN CASH GEHEN') + '</div>' +
+        '<div class="desc">' + (isBuy
+          ? 'Kurs liegt &uuml;ber dem 200-Tage-SMA &rarr; Position halten / einsteigen.'
+          : 'Kurs liegt unter dem 200-Tage-SMA &rarr; Kasse halten / aussteigen.') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="grid">' +
+      '<div class="card"><div class="label">Aktueller Kurs</div><div class="value">' + fmt(price) + '</div><div class="sub">EUR &middot; XU2D.DE &middot; ' + lastDate + '</div></div>' +
+      '<div class="card"><div class="label">200-Tage-SMA</div><div class="value" style="color:var(--accent)">' + fmt(sma200) + '</div><div class="sub">Gleitender Durchschnitt</div></div>' +
+      '<div class="card"><div class="label">Abstand zum SMA</div><div class="value" style="color:' + diffColor + '">' + diffStr + '</div><div class="sub">' + (isBuy ? 'Kurs &uuml;ber SMA' : 'Kurs unter SMA') + '</div></div>' +
+    '</div>' +
+    '<div class="chart-card"><div class="chart-title">Kursverlauf + 200 SMA &middot; letzte 12 Monate</div><canvas id="myChart" height="100"></canvas></div>';
 
-    <div class="grid">
-      <div class="card price">
-        <div class="label">Aktueller Kurs</div>
-        <div class="value">${formatPrice(price)}</div>
-        <div class="sub">EUR · ${TICKER} · ${formatDate(data[data.length-1].t)}</div>
-      </div>
-      <div class="card sma">
-        <div class="label">200-Tage-SMA</div>
-        <div class="value">${formatPrice(sma200)}</div>
-        <div class="sub">Gleitender Durchschnitt</div>
-      </div>
-      <div class="card diff">
-        <div class="label">Abstand zum SMA</div>
-        <div class="value" style="color:${diffColor}">${diffStr}</div>
-        <div class="sub">${isBuy ? 'Kurs über SMA' : 'Kurs unter SMA'}</div>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-title">Kursverlauf + 200 SMA · letzte 12 Monate</div>
-      <canvas id="myChart" height="100"></canvas>
-    </div>
-  `;
-
-  // Draw chart
   const ctx = document.getElementById('myChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
     data: {
       labels,
       datasets: [
-        {
-          label: 'Kurs (EUR)',
-          data: prices,
-          borderColor: '#58a6ff',
-          backgroundColor: 'rgba(88,166,255,.06)',
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: true,
-          tension: 0.2,
-        },
-        {
-          label: '200 SMA',
-          data: smaLine,
-          borderColor: isBuy ? '#00e676' : '#ff1744',
-          borderWidth: 2,
-          borderDash: [6, 3],
-          pointRadius: 0,
-          fill: false,
-          tension: 0.2,
-        }
+        { label: 'Kurs (EUR)', data: prices, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,.06)', borderWidth: 2, pointRadius: 0, fill: true, tension: 0.2 },
+        { label: '200 SMA',   data: smaLine, borderColor: isBuy ? '#00e676' : '#ff1744', borderWidth: 2, borderDash: [6,3], pointRadius: 0, fill: false, tension: 0.2 }
       ]
     },
     options: {
       responsive: true,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: {
-          labels: {
-            color: '#8b949e',
-            font: { family: 'JetBrains Mono', size: 11 },
-            boxWidth: 14,
-          }
-        },
+        legend: { labels: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 11 }, boxWidth: 14 } },
         tooltip: {
-          backgroundColor: '#161b22',
-          borderColor: '#21262d',
-          borderWidth: 1,
-          titleColor: '#8b949e',
-          bodyColor: '#e6edf3',
+          backgroundColor: '#161b22', borderColor: '#21262d', borderWidth: 1,
+          titleColor: '#8b949e', bodyColor: '#e6edf3',
           bodyFont: { family: 'JetBrains Mono' },
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? formatPrice(ctx.parsed.y) + ' €' : '–'}`
-          }
+          callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? fmt(ctx.parsed.y) + ' \u20ac' : '\u2013') }
         }
       },
       scales: {
-        x: {
-          ticks: {
-            color: '#8b949e',
-            font: { family: 'JetBrains Mono', size: 10 },
-            maxTicksLimit: 8,
-            maxRotation: 0,
-          },
-          grid: { color: '#21262d' }
-        },
-        y: {
-          ticks: {
-            color: '#8b949e',
-            font: { family: 'JetBrains Mono', size: 10 },
-            callback: v => formatPrice(v) + ' €'
-          },
-          grid: { color: '#21262d' }
-        }
+        x: { ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 8, maxRotation: 0 }, grid: { color: '#21262d' } },
+        y: { ticks: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmt(v) + ' \u20ac' }, grid: { color: '#21262d' } }
       }
     }
   });
 
-  // Meta
   document.getElementById('meta').style.display = 'block';
-  document.getElementById('last-update').textContent =
-    'Stand: ' + new Date().toLocaleString('de-DE');
+  document.getElementById('last-update').textContent = 'Stand: ' + new Date().toLocaleString('de-DE');
 }
 
 async function main() {
@@ -425,11 +306,8 @@ async function main() {
     render(data);
   } catch (e) {
     console.error(e);
-    document.getElementById('app').innerHTML = `
-      <div class="error-msg">
-        ⚠️ Daten konnten nicht geladen werden.<br/>
-        Alle Proxy-Server nicht erreichbar – bitte Seite in 1–2 Minuten neu laden.
-      </div>`;
+    document.getElementById('app').innerHTML =
+      '<div class="error-msg">&#9888;&#65039; Fehler: ' + e.message + '<br/>Bitte Seite neu laden oder sp&auml;ter versuchen.</div>';
   }
 }
 
